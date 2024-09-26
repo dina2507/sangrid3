@@ -3,18 +3,20 @@ const video = document.getElementById('webcam');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const statusElement = document.getElementById('status');
-const alertElement = document.createElement('p'); // Element to display alerts on screen
-document.body.appendChild(alertElement);
+const alertElement = document.getElementById('alert');
+const helpText = document.getElementById('helpText');
+const sirenSound = document.getElementById('sirenSound'); // Siren audio element
 
 let model;
-let detecting = false;  // Set to false initially
+let detecting = false;
+let sosActive = false; // Variable to track if SOS mode is active
 
 // Load the COCO-SSD model
 cocoSsd.load().then(loadedModel => {
     model = loadedModel;
     statusElement.textContent = "Status: Model loaded. Waiting for voice commands.";
     startWebcam();
-    startVoiceRecognition();  // Start voice input system
+    startVoiceRecognition(); // Start voice input system
 }).catch(error => {
     statusElement.textContent = "Error loading model.";
     console.error("Model loading error: ", error);
@@ -35,53 +37,27 @@ function startWebcam() {
     });
 }
 
-// Example code for calculating distance using bounding box size
-function calculateDistance(bbox) {
-    const size = bbox[2] * bbox[3];  // Calculate size from width * height
-    const distance = (1 / size) * 1000; // Example formula, refine it as per your data
-    return distance.toFixed(2) + ' meters';
+// Function to handle SOS alert
+function triggerSOS() {
+    if (!sosActive) {
+        sosActive = true;
+        sirenSound.play(); // Start alarm sound
+        document.body.classList.add('sos-mode'); // Trigger screen flicker
+        helpText.style.display = 'block'; // Show blinking HELP text
+        alertUser('SOS mode activated.'); // Voice alert
+    }
 }
 
-// Object detection function
-async function detectObjects() {
-    if (!detecting) return;  // Return if not in detecting mode
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const predictions = await model.detect(video);
-
-    let personCount = 0;
-
-    predictions.forEach(prediction => {
-        const [x, y, width, height] = prediction.bbox;
-        const text = `${prediction.class} (${Math.round(prediction.score * 100)}%)`;
-
-        // Draw bounding box
-        ctx.strokeStyle = 'green';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, y, width, height);
-
-        // Draw label
-        ctx.font = '18px Arial';
-        ctx.fillStyle = 'green';
-        ctx.fillText(text, x, y > 10 ? y - 5 : y + 15);
-
-        const distance = calculateDistance(prediction.bbox);
-        const message = `There is a ${prediction.class} at ${distance} in front of you.`;
-
-        if (prediction.class === 'person') {
-            personCount++;
-        }
-
-        alertUser(message);
-    });
-
-    if (personCount > 1) {
-        alertUser(`There are ${personCount} people in front of you.`);
+// Function to stop the SOS alert
+function stopSOS() {
+    if (sosActive) {
+        sosActive = false;
+        sirenSound.pause(); // Stop the alarm sound
+        sirenSound.currentTime = 0; // Reset the sound for next use
+        document.body.classList.remove('sos-mode'); // Stop screen flicker
+        helpText.style.display = 'none'; // Hide blinking HELP text
+        alertUser('SOS mode deactivated.'); // Voice alert
     }
-
-    requestAnimationFrame(detectObjects);
 }
 
 // Voice alert function with 5-second delay
@@ -91,41 +67,9 @@ function alertUser(message) {
     if (currentTime - lastAlertTime > 5000) {
         const utterance = new SpeechSynthesisUtterance(message);
         window.speechSynthesis.speak(utterance);
-        alertElement.textContent = message;  // Print alert on the screen
+        alertElement.textContent = message;
         lastAlertTime = currentTime;
     }
-}
-
-// OCR (Text Recognition) using Tesseract.js
-function recognizeText() {
-    const canvasData = canvas.toDataURL('image/png');
-
-    Tesseract.recognize(
-        canvasData,
-        'eng',
-        {
-            tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 '
-        }
-    )
-    .then(({ data: { text } }) => {
-        if (text) {
-            const message = "Recognized Text: " + text;
-            alertUser(message);
-        }
-    })
-    .catch(error => {
-        console.error("Error recognizing text: ", error);
-    });
-}
-
-// Get current time in IST (UTC+05:30)
-function getCurrentTimeIST() {
-    const now = new Date();
-    const options = { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    const time = now.toLocaleTimeString('en-IN', options);
-    const message = "The current time is " + time;
-    alertUser(message);  // Display time alert on the screen
 }
 
 // Voice recognition setup
@@ -139,18 +83,24 @@ function startVoiceRecognition() {
         const lastResult = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
         console.log("Voice Command: ", lastResult);
 
-        if (lastResult.includes("ob")) {
+        if (lastResult.includes("object")) {
             detecting = true;
             detectObjects();
             statusElement.textContent = "Status: Detecting objects.";
         } else if (lastResult.includes("stop")) {
-            detecting = false;
-            statusElement.textContent = "Status: Waiting for voice command.";
-            alertUser("Object detection stopped.");
+            if (sosActive) {
+                stopSOS(); // Stop SOS if active
+            } else {
+                detecting = false;
+                statusElement.textContent = "Status: Waiting for voice command.";
+                alertUser("Object detection stopped.");
+            }
         } else if (lastResult.includes("what is the time")) {
             getCurrentTimeIST();
         } else if (lastResult.includes("read the text")) {
             recognizeText();
+        } else if (lastResult.includes("help")) {
+            triggerSOS(); // Trigger SOS mode on "help"
         } else {
             alertUser("I didn't understand that command.");
         }
@@ -161,15 +111,63 @@ function startVoiceRecognition() {
     };
 
     recognition.onend = () => {
-        recognition.start();  // Restart recognition if it stops
+        recognition.start(); // Restart recognition if it stops
     };
 
-    recognition.start();  // Start voice recognition
+    recognition.start(); // Start voice recognition
 }
 
-// Set interval to recognize text every 10 seconds (optional, if needed for continuous monitoring)
-setInterval(() => {
-    if (!detecting) {
-        recognizeText();
-    }
-}, 10000);
+// Object detection function
+function detectObjects() {
+    if (!detecting) return;
+
+    model.detect(video).then(predictions => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        predictions.forEach(prediction => {
+            if (prediction.score > 0.6) {
+                ctx.strokeStyle = 'green';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+                ctx.fillStyle = 'green';
+                ctx.fillText(prediction.class, prediction.bbox[0], prediction.bbox[1] - 10);
+            }
+        });
+
+        if (detecting) {
+            requestAnimationFrame(detectObjects); // Keep detecting in loop
+        }
+    }).catch(error => {
+        console.error("Object detection error: ", error);
+    });
+}
+
+// Get current time in IST format and announce it
+function getCurrentTimeIST() {
+    const now = new Date();
+    const options = { timeZone: "Asia/Kolkata", hour12: true, hour: "2-digit", minute: "2-digit" };
+    const timeInIST = new Intl.DateTimeFormat("en-US", options).format(now);
+    alertUser("The time is " + timeInIST);
+}
+
+// Text recognition from the video feed using Tesseract.js
+function recognizeText() {
+    statusElement.textContent = "Status: Recognizing text...";
+
+    // Convert video frame to image and run OCR on it
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL('image/png');
+
+    Tesseract.recognize(
+        imageData,
+        'eng',
+        {
+            logger: (m) => console.log(m) // Log progress
+        }
+    ).then(({ data: { text } }) => {
+        alertUser("Recognized text: " + text);
+        statusElement.textContent = "Status: Text recognized.";
+    }).catch(error => {
+        console.error("Text recognition error: ", error);
+        statusElement.textContent = "Status: Error recognizing text.";
+    });
+}

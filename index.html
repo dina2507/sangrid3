@@ -3,23 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sangrid 2.0 - Voice Controlled AI</title>
+  <title>Sangrid 3.0 - Voice Controlled AI with SOS</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Sangrid 2.0 - Voice Controlled AI</h1>
-  <div class="container">
-    <video id="webcam" autoplay playsinline width="600" height="400"></video>
-<canvas id="canvas" width="600" height="400"></canvas>
+  <h1>Sangrid 3.0 - Voice Controlled AI</h1>
+  <div class="container sos-container">
+    <video id="webcam" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
     <p id="status">Status: Waiting for command...</p>
-    <p id="alert">Alert: </p> <!-- New element for displaying alerts -->
+    <p id="alert">Alert: </p>
+    <p id="helpText">HELP</p> <!-- Added blinking HELP text -->
   </div>
+
+  <!-- Siren audio file -->
+  <audio id="sirenSound" src="sos-signal-137144.mp3"></audio>
 
   <!-- TensorFlow.js, COCO-SSD, and Tesseract.js libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2"></script>
-  
+
   <!-- Link to the main JS logic -->
   <script src="app.js"></script>
 </body>

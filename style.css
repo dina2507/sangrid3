@@ -1,147 +1,183 @@
-/* Body and background styling for a futuristic look */
+/* Global body styling */
 body {
     margin: 0;
     padding: 0;
     font-family: 'Roboto', sans-serif;
-    background: radial-gradient(circle, #0f2027, #203a43, #2c5364); /* Futuristic gradient */
-    color: #00ffcc; /* Neon color for text */
+    background-image: url('bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #00ffcc;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     min-height: 100vh;
+    backdrop-filter: blur(8px);
+    overflow: hidden;
 }
 
-/* Futuristic glowing header */
+/* Make the whole page scrollable */
+html, body {
+    height: 100%;
+    overflow-y: auto;
+}
+
 h1 {
-    font-size: 3rem;
+    font-size: 4rem;
     color: #00ffcc;
-    text-shadow: 0 0 10px rgba(0, 255, 204, 0.7), 0 0 20px rgba(0, 255, 204, 0.5), 0 0 30px rgba(0, 255, 204, 0.3);
-    margin-top: 20px;
-    letter-spacing: 2px;
+    text-shadow: 0 0 25px rgba(0, 255, 204, 0.8),
+                 0 0 35px rgba(0, 255, 204, 0.6),
+                 0 0 45px rgba(0, 255, 204, 0.4);
+    margin-top: 40px;
+    letter-spacing: 4px;
+    text-align: center;
+    backdrop-filter: blur(4px);
+    animation: glow 2s ease-in-out infinite alternate;
 }
 
-/* Container for webcam and canvas */
-#camera-container {
+/* Layout for the container */
+.container {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
-    width: 90%;
-    margin-top: 30px;
+    width: 80%;
+    max-width: 1200px;
+    margin-top: 50px;
+    padding: 30px;
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.7),
+                0 0 50px rgba(0, 255, 204, 0.5);
+    background: rgba(0, 0, 0, 0.6);
+    /* Add this to force the container to be scrollable if the content grows */
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
 }
 
-/* Webcam and canvas with neon glow effect */
+/* Left section for the camera */
+.left-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 #webcam, #canvas {
-    width: 45%;
-    border: 2px solid #00ffcc; /* Neon border */
+    width: 100%; /* Adjusted size */
+    height: auto;
+    max-height: 300px; /* Restrict height to ensure space for commands */
+    border: 3px solid #00ffcc;
     border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0, 255, 204, 0.7), 0 0 50px rgba(0, 255, 204, 0.5);
+    box-shadow: 0 0 50px rgba(0, 255, 204, 0.7),
+                0 0 70px rgba(0, 255, 204, 0.5);
+    margin-bottom: 20px;
 }
 
-/* Status message with futuristic glow */
+/* Right section with commands and status */
+.right-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-left: 20px;
+    max-height: calc(100vh - 150px); /* Ensure it fits within the available height */
+    overflow-y: auto; /* Enable scrolling for long content */
+}
+
 #status {
-    margin-top: 15px;
-    font-size: 22px;
-    font-weight: bold;
-    color: #00ffcc;
-    text-shadow: 0 0 10px rgba(0, 255, 204, 0.7), 0 0 15px rgba(0, 255, 204, 0.5);
-}
-
-/* Alert message with a stronger neon red color for urgent alerts */
-#alert {
-    margin-top: 15px;
     font-size: 24px;
     font-weight: bold;
-    color: #ff073a; /* Neon red */
-    text-shadow: 0 0 10px rgba(255, 7, 58, 0.7), 0 0 20px rgba(255, 7, 58, 0.5);
+    color: #00ffcc;
+    text-shadow: 0 0 20px rgba(0, 255, 204, 0.8),
+                 0 0 30px rgba(0, 255, 204, 0.6);
+    text-align: left;
+    margin-top: 10px;
 }
 
-/* Help text for SOS with futuristic blinking effect */
+#alert {
+    font-size: 26px;
+    font-weight: bold;
+    color: #ff073a;
+    text-shadow: 0 0 20px rgba(255, 7, 58, 0.8),
+                 0 0 40px rgba(255, 7, 58, 0.6);
+    text-align: left;
+    margin-top: 15px;
+}
+
 #helpText {
-    display: none; /* Hidden by default */
+    display: none;
     font-size: 50px;
     font-weight: bold;
-    color: #ff073a; /* Neon red */
+    color: #ff073a;
     position: fixed;
-    top: 40%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    animation: neon-blink 1s infinite; /* Blinking neon effect */
-    text-align: center;
-    text-shadow: 0 0 10px rgba(255, 7, 58, 0.8), 0 0 30px rgba(255, 7, 58, 0.5), 0 0 50px rgba(255, 7, 58, 0.4);
+    animation: neon-blink 1s infinite;
+    text-shadow: 0 0 25px rgba(255, 7, 58, 0.8),
+                 0 0 50px rgba(255, 7, 58, 0.6);
 }
 
-/* SOS mode screen flicker */
-.sos-mode {
-    animation: flicker 0.5s infinite alternate;
+/* Commands section within the right section */
+.commands-section {
+    margin-top: 30px;
+    text-align: left;
 }
 
-/* Button container with glowing buttons */
-#button-container {
-    display: flex;
-    justify-content: space-around;
-    width: 80%;
+.commands-section h2 {
+    font-size: 2rem;
+    color: #00ffcc;
+    text-shadow: 0 0 15px rgba(0, 255, 204, 0.8),
+                 0 0 25px rgba(0, 255, 204, 0.6);
+    margin-bottom: 20px;
+}
+
+.commands-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.commands-section ul li {
+    font-size: 1.5rem;
+    color: #00ffcc;
+    margin-bottom: 10px;
+}
+
+.commands-section ul li span {
+    color: #ff073a;
+    text-shadow: 0 0 20px rgba(255, 7, 58, 0.8),
+                 0 0 30px rgba(255, 7, 58, 0.6);
+}
+
+/* Note section within commands */
+.note-section {
     margin-top: 20px;
+    font-size: 1.2rem;
+    color: #ff073a;
+    text-shadow: 0 0 20px rgba(255, 7, 58, 0.8),
+                 0 0 30px rgba(255, 7, 58, 0.6);
 }
 
-button {
-    width: 20%;
-    padding: 15px;
-    font-size: 16px;
-    background-color: #00ffcc;
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.7), 0 0 30px rgba(0, 255, 204, 0.5);
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-button:hover {
-    background-color: #00ff99;
-    box-shadow: 0 0 30px rgba(0, 255, 204, 1), 0 0 50px rgba(0, 255, 204, 0.7);
-}
-
-/* Neon blink effect for the help text */
-@keyframes neon-blink {
-    0%, 50%, 100% {
-        opacity: 1;
-        text-shadow: 0 0 20px rgba(255, 7, 58, 1), 0 0 40px rgba(255, 7, 58, 0.7), 0 0 50px rgba(255, 7, 58, 0.5);
-    }
-    25%, 75% {
-        opacity: 0;
-        text-shadow: none;
-    }
-}
-
-/* Animation for the screen flicker effect */
-@keyframes flicker {
+/* Keyframes for glow and blinking effects */
+@keyframes glow {
     0% {
-        background-color: #1c1c1c;
-    }
-    50% {
-        background-color: #ff073a; /* Flashing red during SOS */
+      text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc, 0 0 60px #00ffcc;
     }
     100% {
-        background-color: #1c1c1c;
+      text-shadow: 0 0 40px #00ffcc, 0 0 60px #00ffcc, 0 0 80px #00ffcc;
     }
 }
 
-/* Scrollbar styling to match futuristic look */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #20232a;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #00ffcc;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 255, 204, 0.7);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #00ff99;
+@keyframes neon-blink {
+    0%, 100% {
+      opacity: 1;
+      text-shadow: 0 0 40px rgba(255, 7, 58, 1),
+                   0 0 60px rgba(255, 7, 58, 0.8);
+    }
+    50% {
+      opacity: 0;
+    }
 }

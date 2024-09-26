@@ -4,19 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sangrid 3.0 - Voice Controlled AI with SOS</title>
+  <!-- Linking the external CSS file -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Main header -->
   <h1>Sangrid 3.0 - Voice Controlled AI</h1>
+
+  <!-- Container for video stream and status -->
   <div class="container sos-container">
     <video id="webcam" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
     <p id="status">Status: Waiting for command...</p>
     <p id="alert">Alert: </p>
-    <p id="helpText">HELP</p> <!-- Added blinking HELP text -->
+    <p id="helpText">HELP</p>
   </div>
+  <!--Command section-->
+   <!-- Command Section added here within the right section -->
+   <div class="commands-section">
+    <h2>List of Commands</h2>
+    <ul>
+      <li>Say <span>"object"</span> - to start object detection</li>
+      <li>Say <span>"stop"</span> - To return to main menu</li>
+      <li>Say <span>"read the text"</span></li>
+      <li>Say <span>"help"</span> - to start SOS</li>
+    </ul>
 
-  <!-- Siren audio file -->
+    <div class="note-section">
+      <strong>Note:</strong> Please give permission to use the camera and microphone to access the AI model.
+    </div>
+
+  <!-- Siren audio file for SOS -->
   <audio id="sirenSound" src="sos-signal-137144.mp3"></audio>
 
   <!-- TensorFlow.js, COCO-SSD, and Tesseract.js libraries -->
@@ -24,7 +42,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2"></script>
 
-  <!-- Link to the main JS logic -->
+  <!-- Custom JavaScript -->
   <script src="app.js"></script>
 </body>
 </html>

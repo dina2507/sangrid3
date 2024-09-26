@@ -42,20 +42,16 @@ function calculateDistance(bbox) {
     return distance.toFixed(2) + ' meters';
 }
 
-// Object detection function with 5-second delay
-let lastDetectionTime = 0;
+// Object detection function
 async function detectObjects() {
     if (!detecting) return;  // Return if not in detecting mode
-
-    const currentTime = new Date().getTime();
-    if (currentTime - lastDetectionTime < 5000) return;  // 5-second delay between detections
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const predictions = await model.detect(video);
+
     let personCount = 0;
-    let messages = [];
 
     predictions.forEach(prediction => {
         const [x, y, width, height] = prediction.bbox;
@@ -72,22 +68,19 @@ async function detectObjects() {
         ctx.fillText(text, x, y > 10 ? y - 5 : y + 15);
 
         const distance = calculateDistance(prediction.bbox);
-        messages.push(`There is a ${prediction.class} at ${distance} in front of you.`);
+        const message = `There is a ${prediction.class} at ${distance} in front of you.`;
 
         if (prediction.class === 'person') {
             personCount++;
         }
+
+        alertUser(message);
     });
 
     if (personCount > 1) {
-        messages.push(`There are ${personCount} people in front of you.`);
+        alertUser(`There are ${personCount} people in front of you.`);
     }
 
-    if (messages.length > 0) {
-        alertUser(messages.join(' '));
-    }
-
-    lastDetectionTime = currentTime;
     requestAnimationFrame(detectObjects);
 }
 
@@ -103,55 +96,27 @@ function alertUser(message) {
     }
 }
 
-// Improved Tesseract.js OCR with image preprocessing
+// OCR (Text Recognition) using Tesseract.js
 function recognizeText() {
     const canvasData = canvas.toDataURL('image/png');
-    
-    // Create an Image element to manipulate the canvas image
-    const img = new Image();
-    img.src = canvasData;
-    
-    img.onload = function() {
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCanvas.width = img.width;
-        tempCanvas.height = img.height;
 
-        tempCtx.drawImage(img, 0, 0);
-        
-        // Convert image to grayscale to improve text recognition
-        let imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        let data = imageData.data;
-        
-        for (let i = 0; i < data.length; i += 4) {
-            let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-            data[i] = avg;
-            data[i + 1] = avg;
-            data[i + 2] = avg;
+    Tesseract.recognize(
+        canvasData,
+        'eng',
+        {
+            tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 '
         }
-        
-        tempCtx.putImageData(imageData, 0, 0);
-
-        Tesseract.recognize(
-            tempCanvas.toDataURL(),
-            'eng',
-            {
-                tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-'
-            }
-        ).then(({ data: { text } }) => {
-            let recognizedText = text.trim();
-            if (recognizedText) {
-                alertUser("Recognized Text: " + recognizedText);
-                document.getElementById('status').textContent = "Recognized Text: " + recognizedText;
-            } else {
-                alertUser("No readable text detected.");
-            }
-        }).catch(error => {
-            console.error("Error recognizing text: ", error);
-            alertUser("Error recognizing text.");
-        });
-    };
+    )
+    .then(({ data: { text } }) => {
+        if (text) {
+            const message = "Recognized Text: " + text;
+            alertUser(message);
+        }
+    })
+    .catch(error => {
+        console.error("Error recognizing text: ", error);
+    });
 }
 
 // Get current time in IST (UTC+05:30)
@@ -174,7 +139,7 @@ function startVoiceRecognition() {
         const lastResult = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
         console.log("Voice Command: ", lastResult);
 
-        if (lastResult.includes("obstacle")) {
+        if (lastResult.includes("ob")) {
             detecting = true;
             detectObjects();
             statusElement.textContent = "Status: Detecting objects.";
